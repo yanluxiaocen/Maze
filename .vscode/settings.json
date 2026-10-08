@@ -1,0 +1,20 @@
+{
+    "files.exclude": {
+        "**/*.sln": true,
+        "**/*.vcxproj": true,
+        "**/*.vcxproj.filters": true,
+        "**/*.vcxproj.user": true,
+        "**/x64/": true,
+        "**/Debug/": true,
+        "**/Release/": true,
+        "**/build/": true,
+        "**/*.exe": true
+    },
+    "cmake.cmakePath": "D:/Tool/CMake/cmake-4.4.3-windows-x86_64/bin/cmake.exe",
+    "[cpp]": {
+        "editor.formatOnSave": true
+    },
+    "[c]": {
+        "editor.formatOnSave": true
+    }
+}

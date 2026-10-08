@@ -5,9 +5,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # ---- 主程序 ----
-# TODO(v1)：maze.cpp / generator.cpp / render.cpp 写好后逐个加进来
+# TODO(v1)：generator.cpp / render.cpp 写好后逐个加进来
 add_executable(Maze
     src/main.cpp
+    src/maze.cpp
 )
 target_include_directories(Maze PRIVATE include)
 
@@ -17,7 +18,9 @@ enable_testing()
 add_executable(unit_tests
     tests/test_main.cpp
     tests/test_sanity.cpp
-    # TODO(v1)：被测源文件（src/maze.cpp、src/generator.cpp…）在这里重新编一份
+    # 被测源文件在这里重新编一份（target 里不放 main.cpp）
+    src/maze.cpp
+    # TODO(v1)：src/generator.cpp 写好后加进来
 )
 target_include_directories(unit_tests PRIVATE include tests)
 add_test(NAME unit_tests COMMAND unit_tests)

@@ -31,3 +31,13 @@ void Maze::carve(int x1, int y1, int x2, int y2)
 {
     grid[(y1 + y2) / 2][(x1 + x2) / 2] = '.';
 }
+
+int Maze::getWidth() const
+{
+    return w;
+}
+
+int Maze::getHeight() const
+{
+    return h;
+}

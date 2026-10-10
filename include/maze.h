@@ -15,4 +15,6 @@ struct Maze
     char at(int x, int y) const;
     void setAt(int x, int y, char c);
     void carve(int x1, int y1, int x2, int y2);
+    int getWidth() const;
+    int getHeight() const;
 };

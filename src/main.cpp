@@ -1,6 +1,9 @@
 #include <windows.h>
 #include <iostream>
+#include <random>
 #include "maze.h"
+#include "generator.h"
+#include "render.h"
 
 int main()
 {
@@ -8,13 +11,9 @@ int main()
     SetConsoleCP(CP_UTF8);
 
     Maze maze(21, 11);
-    maze.carve(3, 5, 3, 7);
-    maze.carve(9, 3, 11, 3);
-    maze.carve(17, 9, 19, 9);
-    for (int i = 0; i < maze.getHeight(); i++)
-    {
-        std::cout << maze.grid[i] << std::endl;
-    }
+    std::random_device rd;
+    generateDFS(maze, 1, 1, rd());
+    render(maze);
 
     std::cin.get();
     return 0;

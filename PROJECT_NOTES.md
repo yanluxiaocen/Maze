@@ -2,7 +2,7 @@
 
 > 本文件是"跨设备共享记忆"：每台电脑/每个账户开工前先读它，收工后更新它，然后提交推送到 GitHub。
 > 由 AI 助手维护，用户负责提交推送。
-> 最后更新：**2026-10-10**
+> 最后更新：**2026-10-11**
 
 ## 一句话简介
 
@@ -14,6 +14,11 @@
 **下一步 v2-b：走到出口的判定 + 步数 / 计时显示。**
 
 **完整项目规格见 `docs/MAZE_PROJECT_HANDOFF.md`**（交接文档：用户画像、环境事实、v1~v6 路线图、可复用资产），开工前先读它。
+
+> ⚠️ **两台机器的环境完全不同，两份文档里的"环境事实"只对主力机成立！**（2026-10-11 实测补齐）
+> **本机（VS2022 这台）没有 `g++` / `cmake` / `mingw64`**，`D:\Tool\CMake`、`D:\Tool\VSCode\mingw64` **都不存在**；
+> 只有 VS2022 自带的一套（MSVC + 它自己的 cmake/ninja），而且 **Windows SDK 装在非默认的 `E:\Windows Kits\10`**。
+> 详细事实与命令见 **「本机环境事实（VS2022 这台）」** 一节，动手前先看那一节，别照抄下面的 MinGW 命令。
 
 ## 协作约定（与 Snack / DSForge 一脉相承）
 
@@ -105,7 +110,18 @@
 
 ### 待办（下次严格按此顺序）
 
-- [ ] **★ 第一件事：提交推送**（v1 + v2-a 的改动都还没进版本库）：`git add -A && git commit && git push`（**先开 Steam++**）
+- [ ] **★ 第一步（明天开工先看这条）：换机继续 —— 先 `git pull`，再选对 preset，别混机器**
+      本机（VS2022 这台）用 preset **`x64-debug`**；**主力机（MinGW 那台）用 preset `mingw-debug`**。
+      ⚠️ **两台机器的 preset 不能互串**：`x64-debug` 在没装 VS2022 的机器上会失败，`mingw-debug` 在本机（没有 g++）也会失败。
+      直接在命令行跑就更清楚：`cmake --preset <名字>` → `cmake --build --preset <名字>`。
+      主力机如果不想用 preset，老命令依然有效（见「常用命令备忘」的 MinGW 一行）。
+- [ ] **★ 第二步：本机 VS2022 的构建路线还没验收**（上一轮加的 preset 还没真跑过）
+      —— 本机 CMake 默认走 `Ninja` 生成器会报 `LNK1104: 无法打开文件"libucrt.lib"`（原因见 M18）。
+      **做法**：VS 里"打开文件夹"→ 顶部选 preset `x64-debug` → 配置 → F5。
+      **验收**：Maze 能编出来并运行（不再报 `libucrt.lib`）。**失败就回来告诉我**，那就是我诊断错了，我们再查。
+- [ ] **★ 收工动作：提交推送这次的新改动** —— `CMakePresets.json`（新增）+ 本日志的改动。
+      `git add -A && git commit -m "chore: 加 CMakePresets（双机各一份 preset）+ 补齐本机环境事实" && git push`（**先开 Steam++**）。
+      （v1 / v2-a 的源码改动**早已提交推送**：`a622da5`、`e0d3329`，工作区是干净的。）
 - [ ] **★ 然后开 v2-b：出口 + 步数 / 计时**
       - **出口**：取右下角房间 `(w-2, h-2)`（21×11 时就是 `(19, 9)`）；`render` 里在这一格画 `'E'`
       - **通关判定**：玩家坐标 == 出口坐标 → 通关
@@ -166,7 +182,7 @@
   目录改名后 build 缓存失效、`-Wall -Wextra` 的价值、PowerShell 的 UTF-8 编码坑……）。
   **撞上类似问题时直接引用编号**，不重复抄写。
 
-### Maze 新增（M1~M17）
+### Maze 新增（M1~M18）
 
 1. **`vector<string>` 是"容器套容器"，两层都得先分配。**
    `grid.resize(h)` 只让柜子有 h 层，**每层还是空 string**；每行还要再填 w 个字符。只做一半 → 行内索引越界。
@@ -225,7 +241,8 @@
     `-pedantic` 报 `ISO C++ forbids variable length array 'seen' [-Wvla]`。
     GCC 当"扩展"放行（所以本机看不出问题），**MSVC 不支持** → 换到主力机 VS2022 **直接编译失败**；而且 VLA 在栈上分配，尺寸大了爆栈。
     标准写法：`std::vector<std::vector<bool>> seen(h, std::vector<bool>(w, false));`
-    ⚠️ **本机是 MinGW，这类"只在 MSVC 上炸"的坑在本机永远看不见 —— 双机协作时尤其危险。**
+    ⚠️ **装 MinGW 的那台机器（主力机）看不见这类"只在 MSVC 上炸"的坑，双机协作时尤其危险。**
+    （**M18 正好是它的镜像：VS2022 这台也一样看不见"只在 MinGW 上能过"的东西 —— 两边的坑，只能靠对方那台机器暴露。**）
 16. **"没输出 + 不退出" = 死循环的签名，跟"崩溃"是两种病，别混。**
     - **崩溃**（越界 / 断言失败）：会甩出明确的报错信息 + 退出码是负数
     - **死循环**：**零输出、进程一直不退出**（本轮 `generateDFS` 就是这种）
@@ -238,7 +255,18 @@
     再把输出文件按"**每 11 行一帧**"切开检查（本项目实测 1.5 秒 → 14 帧、每帧恰好一个 `@`）。
     （顺带：stdout 被重定向成文件后 `SetConsoleCursorPosition` 会失败 —— 无害，只是退化成"追加输出"，正好方便数帧。）
 
-## 知识点地图
+18. **VS2022 这台机器：CMake 用 `Ninja` 生成器 → 必然倒在 `LNK1104: 无法打开文件"libucrt.lib"`（2026-10-11 实测）。**
+    症状极有欺骗性：**编译一路全过，只在链接那一刻炸**，报的是"找不到一个 C 运行库文件"，看着像代码或环境烂了。
+    真相是**生成器路线问题** —— 这台机器的 Windows SDK **不在默认位置**（注册表 `KitsRoot10 = E:\Windows Kits\10`），
+    `libucrt.lib` 实际在 `E:\Windows Kits\10\Lib\10.0.26100.0\ucrt\x64\`（**文件是好的、齐全的**）。
+    - **MSBuild（`.vcxproj` / "Visual Studio 17 2022" 生成器）能找到它**：VC 工具集去读注册表 `KitsRoot10`，自己拼 Lib 路径。
+      证据：`Snack\Snack\Snack\x64\Debug\Snack.log` 写着 `Snack.vcxproj -> ...\Snack.exe`（真的编出来过）。
+    - **Ninja（VS"打开文件夹"的默认）找不到**：它靠 `LIB` 环境变量，而**不加载开发者环境时 `LIB` / `WindowsSdkDir` / `VCINSTALLDIR` 全是空的**。
+      证据：Maze 与 Snack 的 `CMakeFiles\CMakeConfigureLog.yaml` 里**同一个错各出现好几遍**（Maze 在 `CMakeDetermineCompilerABI` 处反复重试）。
+    **正确做法**：用 **`Visual Studio 17 2022` 生成器**（本仓库已加 `CMakePresets.json` preset `x64-debug`），
+    或改用 **"x64 Native Tools Command Prompt for VS 2022"**（`vcvars64.bat` 会把 SDK 的 Lib 路径填进 `LIB`）。
+    **别去装 SDK、别改系统的 Windows Kits 位置** —— SDK 本来就是好的。
+    附带教训：一条路线失败时，**先去日志和隔壁能跑的项目里找"哪条路线成功过"**，比盯着报错猜有效得多。
 
 **迷宫表示法（本轮新增）**
 
@@ -326,6 +354,43 @@
 - **控制台坐标系**：y 是行、**向下增大** → "上" 是 `dy = -1`（和数学坐标反着）。
 - **`render` 的 `const Maze&` 成了护栏**：它保证玩家**绝不会被"写进"迷宫** —— 一旦 `grid` 被污染，v3 的寻路 AI 会读到脏数据。
 
+## 本机环境事实（VS2022 这台，2026-10-11 实测）
+
+> **两台机器完全不同**：下面这些只对"VS2022 这台"成立。装 MinGW 的主力机按改名前的老命令走（那一套在本机**全部是死路**）。
+
+| 项 | 本机实测值 |
+| --- | --- |
+| 工作区 | `E:\Tool\Visual Studio\Memory`（**不是** `D:\Tool\VSCode\Memory`） |
+| `g++` / `mingw64` | **不存在**（`D:\Tool\VSCode` 没有这个目录，`g++` 也不在 PATH） |
+| `cmake`（独立安装） | **不存在**（`D:\Tool\CMake` 不存在） |
+| 实际用的工具链 | VS2022 Community：`E:\Tool\Visual Studio\Microsoft Visual Studio 2022`；MSVC `14.44.35207`（cl 19.44） |
+| CMake（VS 自带） | `...\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe`（**3.31.6**，不是文档里写的 4.4.3） |
+| Ninja（VS 自带） | `...\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja\ninja.exe` |
+| Windows SDK | **非默认位置**：`E:\Windows Kits\10`（`Include` / `Lib` 都是 `10.0.26100.0`）；注册表 `KitsRoot10 = E:\Windows Kits\10\` |
+| 能跑的构建路线 | ✅ `Visual Studio 17 2022` 生成器（= MSBuild）；✅ `vcvars64.bat` + Ninja |
+| 跑不了的路线 | ❌ **裸 Ninja**（VS"打开文件夹"的默认）→ 见 M18；❌ MinGW Makefiles（没有 g++） |
+
+**本机命令（在 Maze 目录下）**
+
+```powershell
+# 路线一：preset（推荐，和 VS 里选 preset 等价）
+cmake --preset x64-debug
+cmake --build --preset x64-debug
+
+# 路线二：VS 的"开发者环境"里跑 Ninja（vcvars64 会把 SDK 的 Lib 路径填进 LIB）
+cmd /c "call `"E:\Tool\Visual Studio\Microsoft Visual Studio 2022\VC\Auxiliary\Build\vcvars64.bat`" && cmake --preset x64-debug"
+```
+
+- ⚠️ **VS 生成器是多配置**：产物在 `build\x64-debug\Debug\`，**不是** `build\x64-debug\`；命令行构建要 `--config Debug`
+  （preset 里可以写 `"configuration": "Debug"` 免掉这一步）。
+- ⚠️ **`.vscode\` 那套 F5 在本机用不了**：它写死了 `D:/Tool/CMake/...` 和 `D:/Tool/VSCode/mingw64\...`（本机不存在）。
+  本机用 **VS2022** 打开文件夹 + 选 preset，别指望 VSCode 那条链。要不要给 `.vscode` 做双机分支，以后单独决定。
+- **（2026-10-11 的环境修复，本机一次性）**：DSH 的 Windows 沙箱要给工作区改 DACL，前提是**运行它的账户就是工作区目录属主**；
+  本机跑 DSH 的是 `present\learn`、而 `Memory` 属主是 `yanluxiaocen`，且 `learn` 的管理员组被 UAC 过滤 →
+  每条命令都报 `SetNamedSecurityInfoW failed (Win32 5)`。**已用管理员 PowerShell 执行一次**：
+  `icacls "E:\Tool\Visual Studio\Memory" /grant "present\learn:(WDAC,WO)"` → 之后免提权可用。
+  **换工作区路径时要重做这一条**（它只作用于被授权的那个目录）。
+
 ## 常用命令备忘
 
 - 每日开工：先读本文件 + `docs/MAZE_PROJECT_HANDOFF.md`；换机先 `git pull`
@@ -351,3 +416,8 @@
 - ⚠️ **别拿 `g++ -fsyntax-only` 当验收**（抓不到 `-Wreturn-type` 这类控制流警告），只能当打字检查
 - 终端看中文先敲：`[Console]::OutputEncoding = [System.Text.Encoding]::UTF8`
 - VSCode：任意文件按 **F5** = 先跑 `CMake: 构建` 再启动 `build\Maze.exe`（外部控制台）
+- **VS2022（本机）**：打开 `Maze` 文件夹 → 顶部选 preset **`x64-debug`** → 配置 → F5。
+  （**不要**用默认的 Ninja 路线，见 M18；`.vscode` 那套命令本机是死路，见「本机环境事实」）
+- **主力机（MinGW 那台）**：命令行 `cmake --preset mingw-debug` → `cmake --build --preset mingw-debug`；
+  或用老命令：`cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_CXX_COMPILER=D:/Tool/VSCode/mingw64/bin/g++.exe -DCMAKE_MAKE_PROGRAM=D:/Tool/VSCode/mingw64/bin/mingw32-make.exe` → `cmake --build build`。
+  ⚠️ **换机时 preset 要跟着换**（`x64-debug` ↔ `mingw-debug`），两个 preset 各自只在自己的机器上有效。

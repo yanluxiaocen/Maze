@@ -1,0 +1,47 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "x64-debug",
+      "displayName": "x64 Debug (VS2022 / MSVC)",
+      "description": "本机（VS2022 这台）专用：用 Visual Studio 17 2022 生成器，绕开 Ninja 找不到 libucrt.lib 的问题（见 PROJECT_NOTES 的 M18）",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD": "17",
+        "CMAKE_CXX_STANDARD_REQUIRED": "ON"
+      }
+    },
+    {
+      "name": "mingw-debug",
+      "displayName": "x64 Debug (MinGW / 主力机)",
+      "description": "主力机（装了 mingw64 + 独立 CMake 的那台）专用：MinGW Makefiles + g++，对应改名前 PROJECT_NOTES 里的『首次配置』命令",
+      "generator": "MinGW Makefiles",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_STANDARD": "17",
+        "CMAKE_CXX_STANDARD_REQUIRED": "ON",
+        "CMAKE_CXX_COMPILER": "D:/Tool/VSCode/mingw64/bin/g++.exe",
+        "CMAKE_MAKE_PROGRAM": "D:/Tool/VSCode/mingw64/bin/mingw32-make.exe"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "x64-debug",
+      "configurePreset": "x64-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "mingw-debug",
+      "configurePreset": "mingw-debug"
+    }
+  ]
+}

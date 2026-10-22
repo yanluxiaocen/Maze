@@ -7,6 +7,7 @@
 #include "generator.h"
 #include "render.h"
 #include "point.h"
+#include "solver.h"
 
 int main()
 {
@@ -22,6 +23,7 @@ int main()
         Point player = {1, 1};
         int steps = 0;
         Point exit = {maze.getWidth() - 2, maze.getHeight() - 2};
+        auto path = bfsPath(maze, player, exit);
 
         auto startTime = std::chrono::steady_clock::now();
         int elapsed = 0;
@@ -83,7 +85,7 @@ int main()
                 std::chrono::duration_cast<std::chrono::seconds>(
                     std::chrono::steady_clock::now() - startTime)
                     .count());
-            render(maze, player, exit, steps, elapsed);
+            render(maze, player, exit, steps, elapsed, path);
             Sleep(100);
 
             if (player == exit)

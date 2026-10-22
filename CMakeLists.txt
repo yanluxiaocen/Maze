@@ -10,6 +10,7 @@ add_executable(Maze
     src/maze.cpp
     src/generator.cpp
     src/render.cpp
+    src/solver.cpp
 )
 target_include_directories(Maze PRIVATE include)
 
@@ -20,9 +21,11 @@ add_executable(unit_tests
     tests/test_main.cpp
     tests/test_sanity.cpp
     tests/test_generator.cpp
+    tests/test_solver.cpp
     # 被测源文件在这里重新编一份（target 里不放 main.cpp）
     src/maze.cpp
     src/generator.cpp
+    src/solver.cpp
 )
 target_include_directories(unit_tests PRIVATE include tests)
 add_test(NAME unit_tests COMMAND unit_tests)

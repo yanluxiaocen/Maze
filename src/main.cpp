@@ -23,10 +23,16 @@ int main()
         Point player = {1, 1};
         int steps = 0;
         Point exit = {maze.getWidth() - 2, maze.getHeight() - 2};
-        auto path = bfsPath(maze, player, exit);
+
+        std::vector<Point> path;
+        std::vector<Point> showPath;
 
         auto startTime = std::chrono::steady_clock::now();
         int elapsed = 0;
+
+        bool aiMode = false;
+        int pathIndex = 0;
+        int aiTick = 0;
 
         while (true)
         {
@@ -68,9 +74,19 @@ int main()
                     return 0;
                 default:
                     break;
+                case 'e':
+                case 'E':
+                    aiMode = !aiMode;
+                    if (aiMode)
+                    {
+                        path = bfsPath(maze, player, exit);
+                        pathIndex = 0;
+                        aiTick = 0;
+                    }
+                    break;
                 }
 
-                if (dx != 0 || dy != 0)
+                if (!aiMode && (dx != 0 || dy != 0))
                 {
                     int tx = player.x + dx;
                     int ty = player.y + dy;
@@ -85,7 +101,25 @@ int main()
                 std::chrono::duration_cast<std::chrono::seconds>(
                     std::chrono::steady_clock::now() - startTime)
                     .count());
-            render(maze, player, exit, steps, elapsed, path);
+
+            if (aiMode && !path.empty())
+            {
+                if (++aiTick >= 3)
+                {
+                    aiTick = 0;
+                    if (pathIndex + 1 < (int)path.size())
+                    {
+                        ++pathIndex;
+                        player = path[pathIndex];
+                        ++steps;
+                    }
+                }
+            }
+            if (aiMode && pathIndex < static_cast<int>(path.size()))
+                showPath.assign(path.begin() + pathIndex, path.end());
+            else
+                showPath.clear();
+            render(maze, player, exit, steps, elapsed, showPath);
             Sleep(100);
 
             if (player == exit)

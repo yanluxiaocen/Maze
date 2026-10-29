@@ -2,4 +2,14 @@
 #include "maze.h"
 #include "point.h"
 
-void render(const Maze &maze, const Point &player, const Point &exit, int steps, int seconds, const std::vector<Point> &path);
+struct View
+{
+    Point player;
+    Point exit;
+    int steps = 0;
+    int seconds = 0;
+    std::vector<Point> path;
+    std::vector<Point> visited;
+};
+
+void render(const Maze &maze, const View &view);

@@ -6,9 +6,9 @@
 const int DX[4] = {0, 1, 0, -1};
 const int DY[4] = {-1, 0, 1, 0};
 
-std::vector<Point> bfsPath(const Maze &maze, const Point &from, const Point &to)
+SearchResult bfsSearch(const Maze &maze, const Point &from, const Point &to)
 {
-
+    SearchResult result;
     const int w = maze.getWidth();
     const int h = maze.getHeight();
 
@@ -23,6 +23,8 @@ std::vector<Point> bfsPath(const Maze &maze, const Point &from, const Point &to)
     {
         Point cur = q.front();
         q.pop();
+
+        result.visitOrder.push_back(cur);
 
         if (cur == to)
             break;
@@ -45,16 +47,20 @@ std::vector<Point> bfsPath(const Maze &maze, const Point &from, const Point &to)
     }
 
     if (!visited[to.y][to.x])
-        return {};
+        return result;
 
-    std::vector<Point> path;
     Point cur = to;
     while (!(cur == from))
     {
-        path.push_back(cur);
+        result.path.push_back(cur);
         cur = parent[cur.y][cur.x];
     }
-    path.push_back(from);
-    std::reverse(path.begin(), path.end());
-    return path;
+    result.path.push_back(from);
+    std::reverse(result.path.begin(), result.path.end());
+    return result;
+}
+
+std::vector<Point> bfsPath(const Maze &maze, const Point &from, const Point &to)
+{
+    return bfsSearch(maze, from, to).path;
 }

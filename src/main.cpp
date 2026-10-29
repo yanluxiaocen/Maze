@@ -25,7 +25,7 @@ int main()
         Point exit = {maze.getWidth() - 2, maze.getHeight() - 2};
 
         std::vector<Point> path;
-        std::vector<Point> showPath;
+        View view;
 
         auto startTime = std::chrono::steady_clock::now();
         int elapsed = 0;
@@ -33,6 +33,10 @@ int main()
         bool aiMode = false;
         int pathIndex = 0;
         int aiTick = 0;
+
+        std::vector<Point> visitOrder;
+        int searchTick = 0;
+        bool searching = false;
 
         while (true)
         {
@@ -79,9 +83,19 @@ int main()
                     aiMode = !aiMode;
                     if (aiMode)
                     {
-                        path = bfsPath(maze, player, exit);
+                        SearchResult result = bfsSearch(maze, player, exit);
+                        path = result.path;
+                        visitOrder = result.visitOrder;
                         pathIndex = 0;
                         aiTick = 0;
+                        searchTick = 0;
+                        searching = true;
+                    }
+                    else
+                    {
+                        view.path.clear();
+                        view.visited.clear();
+                        searching = false;
                     }
                     break;
                 }
@@ -102,7 +116,22 @@ int main()
                     std::chrono::steady_clock::now() - startTime)
                     .count());
 
-            if (aiMode && !path.empty())
+            if (searching)
+            {
+                searchTick += 4;
+                if (searchTick > static_cast<int>(visitOrder.size()))
+                    searchTick = static_cast<int>(visitOrder.size());
+
+                if (searchTick == static_cast<int>(visitOrder.size()))
+                    searching = false;
+            }
+
+            if (aiMode && searchTick > 0)
+                view.visited.assign(visitOrder.begin(), visitOrder.begin() + searchTick);
+            else
+                view.visited.clear();
+
+            if (aiMode && !searching && !path.empty())
             {
                 if (++aiTick >= 3)
                 {
@@ -115,11 +144,16 @@ int main()
                     }
                 }
             }
-            if (aiMode && pathIndex < static_cast<int>(path.size()))
-                showPath.assign(path.begin() + pathIndex, path.end());
+            if (aiMode && !searching && pathIndex < static_cast<int>(path.size()))
+                view.path.assign(path.begin() + pathIndex, path.end());
             else
-                showPath.clear();
-            render(maze, player, exit, steps, elapsed, showPath);
+                view.path.clear();
+
+            view.player = player;
+            view.steps = steps;
+            view.seconds = elapsed;
+
+            render(maze, view);
             Sleep(100);
 
             if (player == exit)

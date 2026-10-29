@@ -3,15 +3,15 @@
 #include <iostream>
 #include <string>
 
-static bool isOnPath(const std::vector<Point> &path, int x, int y)
+static bool isInVec(const std::vector<Point> &v, int x, int y)
 {
-    for (const Point &p : path)
+    for (const Point &p : v)
         if (p.x == x && p.y == y)
             return true;
     return false;
 }
 
-void render(const Maze &maze, const Point &player, const Point &exit, int steps, int seconds, const std::vector<Point> &path)
+void render(const Maze &maze, const View &view)
 {
     COORD topLeft = {0, 0};
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), topLeft);
@@ -21,17 +21,21 @@ void render(const Maze &maze, const Point &player, const Point &exit, int steps,
         std::string line;
         for (int x = 0; x < maze.getWidth(); x++)
         {
-            if (x == player.x && y == player.y)
+            if (x == view.player.x && y == view.player.y)
                 line += '@';
-            else if (x == exit.x && y == exit.y)
+            else if (x == view.exit.x && y == view.exit.y)
                 line += 'E';
-            else if (isOnPath(path, x, y))
+            else if (isInVec(view.path, x, y))
                 line += '*';
+            else if (isInVec(view.visited, x, y))
+                line += ',';
             else
                 line += maze.at(x, y);
         }
         std::cout << line << std::endl;
     }
-    std::cout << "步数: " << steps << "  耗时: " << seconds << "s          " << std::endl;
+    std::cout << "步数: " << view.steps
+              << "  耗时: " << view.seconds << "s"
+              << "  访问: " << view.visited.size() << " 格          " << std::endl;
     std::cout.flush();
 }
